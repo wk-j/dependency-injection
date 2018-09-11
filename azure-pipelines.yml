@@ -6,6 +6,7 @@
 pool:
   vmImage: 'Ubuntu 16.04'
 
+steps:
 - script: dotnet build src/DI/DI.csproj -c Release
 
 - task: DotNetCoreInstaller@0

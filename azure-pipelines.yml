@@ -1,0 +1,13 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/vsts/pipelines/apps/windows/dot-net
+
+pool:
+  vmImage: 'Ubuntu 16.04'
+
+- task: DotNetCoreInstaller@0
+  inputs:
+    version: '2.1.300' 
+
+- script: dotnet build src/DI -c Release

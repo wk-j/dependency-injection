@@ -1,65 +1,52 @@
-﻿using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace DI {
-    class SingletonService {
-        public SingletonService() {
-            Console.WriteLine("Singleton");
-        }
-    }
 
-    class ScopeService : IDisposable {
-        public ScopeService(SingletonService signleton) {
-            Console.WriteLine("Scope");
-        }
-
-        public void Dispose() {
-            Console.WriteLine("Destoy scope");
-        }
-    }
-
-    class TransientService : IDisposable {
-        public TransientService(ScopeService scope, SingletonService singleton) {
-            Console.WriteLine("Transiet");
-        }
-
-        public void Dispose() {
-            Console.WriteLine("Destroy transient");
-        }
-    }
-
-    class UserService {
-        public UserService(TransientService transient, ScopeService scope, SingletonService single) {
+    class MyContext : DbContext {
+        public MyContext(DbContextOptions options) : base(options) {
 
         }
     }
 
-    class ContextService {
-        public ContextService(TransientService transient, UserService user, ScopeService scope, SingletonService single) {
+    class MyServie {
+        private readonly ILogger<MyServie> logger;
+        private readonly MyContext context;
+        public MyServie(ILogger<MyServie> logger, MyContext context) {
+            this.logger = logger;
+            this.context = context;
+        }
 
+        public void Method1() {
+            logger.LogInformation("call MyService.Method1");
+        }
+
+        public void Method2() {
+            logger.LogInformation("call MyService.Method1");
         }
     }
 
-    class Program {
+    static class Program {
         static void Main(string[] args) {
-            void go() {
-                var collection = new ServiceCollection();
-                collection.AddSingleton<SingletonService>();
-                collection.AddScoped<ScopeService>();
+            var collection = new ServiceCollection();
+            collection.AddLogging(builder => {
 
-                collection.AddTransient<TransientService>();
-                collection.AddTransient<ContextService>();
-                collection.AddTransient<UserService>();
+                builder.AddConsole(options => {
+                    options.IncludeScopes = true;
+                });
+            });
+            collection.AddDbContext<MyContext>(options => {
+                options.UseNpgsql("Host=localhost;User Id=postgres;Password=1234;Database=DI");
+            });
+            collection.AddTransient<MyServie>();
 
-                var provider = collection.BuildServiceProvider();
+            var provider = collection.BuildServiceProvider();
+            var service = provider.GetService<MyServie>();
+            service.Method1();
+            service.Method2();
 
-                var singleton = provider.GetService<SingletonService>();
-                var scope = provider.GetService<ScopeService>();
-                var transient = provider.GetService<TransientService>();
-                var context = provider.GetService<ContextService>();
-            }
-
-            go();
             Console.Read();
         }
     }

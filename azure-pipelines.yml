@@ -8,3 +8,5 @@ pool:
 
 steps:
 - script: dotnet build src/DI/DI.csproj -c Release
+
+- task: DotNetCoreCLI@2
